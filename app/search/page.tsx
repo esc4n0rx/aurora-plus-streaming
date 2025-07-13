@@ -43,13 +43,15 @@ export default function SearchPage() {
         {/* Explore Section */}
         <section>
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">Explore</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4 md:gap-6">
             {mostSearched.map((item) => (
               <Link key={item.id} href={`/content/${item.id}`}>
-                <div className="content-card">
-                  <div className="relative aspect-[2/3]">
+                <div className="rounded-lg overflow-hidden shadow-lg bg-muted/20 transition-transform duration-200 hover:scale-105 hover:shadow-2xl border border-zinc-800">
+                  <div className="relative w-full aspect-[16/9] min-h-[110px] max-h-[140px]">
                     <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
                   </div>
+                  {/* Título opcional abaixo da imagem */}
+                  {/* <div className="p-2 text-xs text-center text-white truncate">{item.title}</div> */}
                 </div>
               </Link>
             ))}

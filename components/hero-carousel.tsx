@@ -4,8 +4,13 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Play } from "lucide-react"
+import { HeroSlide } from "@/lib/content"
 
-const heroSlides = [
+interface HeroCarouselProps {
+  slides?: HeroSlide[]
+}
+
+const defaultSlides: HeroSlide[] = [
   {
     id: 1,
     title: "SHARKS COLLECTION",
@@ -29,15 +34,48 @@ const heroSlides = [
   },
 ]
 
-export default function HeroCarousel() {
+export default function HeroCarousel({ slides }: HeroCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(slides || defaultSlides)
+  const [isLoading, setIsLoading] = useState(!slides)
 
   useEffect(() => {
+    if (!slides) {
+      fetchHeroSlides()
+    }
+  }, [slides])
+
+  const fetchHeroSlides = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/movies/popular')
+      const data = await response.json()
+      
+      if (data.success && data.data.length > 0) {
+        const movieSlides = data.data.map((movie: any) => ({
+          id: movie.id,
+          title: movie.title,
+          subtitle: `Avaliação: ${movie.rating.toFixed(1)}/10`,
+          image: movie.backdrop || '/placeholder.svg?height=600&width=1200',
+          description: movie.description || 'Descrição não disponível',
+        }))
+        setHeroSlides(movieSlides)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar slides do hero:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (heroSlides.length === 0) return
+    
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
     }, 5000)
     return () => clearInterval(timer)
-  }, [])
+  }, [heroSlides.length])
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
@@ -45,6 +83,18 @@ export default function HeroCarousel() {
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="hero-carousel">
+        <div className="relative w-full h-[600px] bg-gray-900 animate-pulse">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-white text-lg">Carregando...</div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -68,10 +118,10 @@ export default function HeroCarousel() {
             <div className="absolute bottom-0 left-0 p-8 md:p-12 lg:p-16 text-white max-w-2xl">
               <p className="text-sm md:text-base text-yellow-400 font-semibold mb-2">{slide.subtitle}</p>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-wider">{slide.title}</h1>
-              <p className="text-lg md:text-xl mb-6 text-gray-200">{slide.description}</p>
+              <p className="text-lg md:text-xl mb-6 text-gray-200 line-clamp-3">{slide.description}</p>
               <Button size="lg" className="bg-white text-black hover:bg-gray-200">
                 <Play className="mr-2 h-5 w-5" />
-                Watch Now
+                Assistir Agora
               </Button>
             </div>
           </div>
